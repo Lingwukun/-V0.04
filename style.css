@@ -1,0 +1,646 @@
+        /* ===== 手机版基础样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 8px;
+            overflow-x: hidden;
+            color: #333;
+            max-width: 420px; /* 限制手机最大宽度 */
+            min-width: 320px;  /* 最小宽度适配手机 */
+            margin: 0 auto; /* 居中显示 */
+        }
+
+        h1 {
+            font-size: 20px;  /* 手机端稍小 */
+            margin: 10px 0;
+        }
+
+
+        /* ===== 游戏开始 / 起名弹窗 ===== */
+        #start-modal {
+            display: none; /* 初始隐藏，JS 里再打开 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1200;
+            
+            /* 为了居中，用 flex 布局 */
+            display: none;              /* 统一由 JS 控制显示 */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .start-modal-content {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px 18px;
+            max-width: 380px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            text-align: left;
+            position: relative;
+        }
+        
+        .start-modal-content h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #4a7bff;
+        }
+        
+        .start-intro {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .start-features {
+            font-size: 13px;
+            color: #444;
+            margin-left: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .start-features li {
+            margin-bottom: 4px;
+        }
+        
+        .start-name-block {
+            margin: 10px 0 14px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .start-name-block label {
+            font-size: 13px;
+            color: #333;
+        }
+        
+        #player-name-input {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+        
+        #player-name-input:focus {
+            border-color: #4a7bff;
+            box-shadow: 0 0 0 2px rgba(74,123,255,0.15);
+        }
+        
+        .start-confirm-btn {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            background: #4a7bff;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: all 0.2s;
+        }
+        
+        .start-confirm-btn:active {
+            transform: scale(0.96);
+        }
+
+        
+
+        #info-bar {
+            display: flex;
+            justify-content: flex-start !important;  /* ← 关键：不从中心分布 */
+            align-items: center;
+            padding: 10px;
+            gap: 15px;                    /* ← 用 gap 控制间距 */
+            margin: 0 5px 10px 10px;     /* 跟下面保持统一，两边 10px */
+            overflow-x: auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+
+            /*scrollbar-width: none;      /* Firefox 隐藏滚动条 */
+            -ms-overflow-style: none;   /* IE / 旧 Edge 隐藏滚动条 */*/
+        }
+                
+        .info-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: transform 0.2s;
+            
+            /* 三行合一：不放大、不缩小、基础宽度80px */
+            flex: 0 0 70px !important;   /* ← 最可靠的方式 */
+            
+            /* 保险：防止被其他规则覆盖 */
+            min-width: 70px !important;
+            max-width: 70px !important;
+            
+            height: 50px;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        /* 不同卡片渐变色 */
+        .name-card { border-left: 4px solid #ff6b6b; }
+        .age-card { border-left: 4px solid #4ecdc4; }
+        .season-card { border-left: 4px solid #ffe66d; }
+        .major-card { border-left: 4px solid #a8e6cf; }
+        .personality-card { border-left: 4px solid #c7ceea; }
+
+        #info-bar > div {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        #name-input {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+        }
+
+        #personality-tag {
+            background: #ff9500;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* ===== 参数面板（一栏布局） ===== */
+        #main-content {
+            display: grid !important;
+            grid-template-columns: 1fr 3fr !important;  /* 左右两栏 */
+            gap: 12px;
+            margin-bottom: 12px;
+            min-height: 400px;
+            margin: 0 10px 12px 10px;  /* ← 新：左右也缩进 10px，和 report/actions 一样 */
+        }
+        
+        /* 左右面板通用样式 */
+        #attributes-panel, #events-panel {
+            max-height: 400px;  /* 手机端限制高度为视口40% */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;      /* Firefox 隐藏滚动条 */
+            -ms-overflow-style: none;   /* IE / 旧 Edge 隐藏滚动条 */
+        }
+
+
+        #attributes-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #attributes-panel h3 {
+            font-size: 16px;
+            margin-bottom: 6px;
+            color: #4a7bff;
+        }
+
+        .attribute-item {
+            display: flex;
+            align-items: center;
+            margin: 1px 0;
+            padding: 5px;
+            background: #f8f9ff;
+            border-radius: 8px;
+        }
+
+        .attribute-name {
+            width: 50px;
+            font-weight: bold;
+            font-size: 10px;
+            color: #555;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 22px;
+            background: #e0e0e0;
+            border-radius: 11px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34c759, #7af57a);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 小型进度条 */
+        .mini-progress-bar {
+            width: 60px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            display: block;        /* ← 改为块级元素 */
+            margin: 3px auto 0;    /* ← 上 5px，左右居中，下 0 */
+        }
+        .mini-progress-fill.low    { background: linear-gradient(90deg, #f44336, #ef5350); }
+        .mini-progress-fill.medium { background: linear-gradient(90deg, #ff9800, #ffb74d); }
+        .mini-progress-fill.high   { background: linear-gradient(90deg, #4caf50, #66bb6a); }
+        
+        .mini-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 0.3s ease;
+        }
+
+        .attr-name {
+            font-weight: bold;   /* ← 名称加粗 */
+        }
+
+        /* 属性列表：单列、竖向排布、无横向滚动 */
+        #attributes-list {
+            display: flex;
+            flex-direction: column;   /* 一列从上到下 */
+            gap: 6px;                 /* 卡片间距 */
+            padding: 8px 0;
+            white-space: normal;      /* 允许换行 */
+            overflow-x: visible;      /* 禁止横向滚动条 */
+        }
+
+        
+        /* 每个属性项 */
+        .attr-item {
+            display: flex;
+            flex-direction: column;   /* 整体垂直 */
+            align-items: center;
+            padding: 4px;
+            border: 1px solid #ddd;   /* 可选：加边框更像网格 */
+            border-radius: 6px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        /* 新增：名称和数值横向排列 */
+        .attr-header {
+            display: flex;            /* 横向 */
+            gap: 5px;                 /* 间距 */
+            align-items: baseline;    /* 文字基线对齐 */
+        }
+
+        /* ===== 事件面板 ===== */
+
+        #events-list {
+            max-height: 300px;    /* 设置一个固定高度（按需调整） */
+            /* overflow-y: auto;     /* 内容超出时自动显示滚动条 */ */
+            padding-right: 5px;   /* 预留滚动条空间，避免文字被挤 */
+        }
+
+        /* 每行 3 个，自动换行 */
+        .attr-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        
+        
+        /* 数值颜色：低红 中黄 高绿 */
+        .value-low    { color: #f44336; font-weight: bold; }
+        .value-medium { color: #ff9800; font-weight: bold; }
+        .value-high   { color: #4caf50; font-weight: bold; }
+
+        /* 自定义滚动条样式（可选） */
+        #events-list::-webkit-scrollbar {
+            width: 2px;
+        }
+        #events-list::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 4px;
+        }
+
+        #events-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #events-panel h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #ff2d55;
+        }
+
+        .event-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #fff;
+            border-left: 4px solid #4a7bff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .event-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .event-item.random-event {
+            border-left: 4px solid #ff9800;   /* 橙色 */
+        }
+
+        .event-item.important-event {
+            border-left: 6px solid #f44336 ;   /* 红色，且最粗 */
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.3); /* 可加发光 */
+        }
+
+        .event-item.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-left-color: #ccc;
+        }
+
+        .event-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .event-desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* ===== 事件详情弹窗 ===== */
+        #event-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 380px;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .event-story {
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 8px;
+        }
+
+        .event-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #4a7bff;
+            color: white;
+        }
+
+        .option-btn:hover {
+            background: #3a6bf0;
+            transform: translateY(-1px);
+        }
+
+        /* ========== 行动栏（手机端自动换行） ========== */
+        #actions-bar {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;  /* 两列布局 */
+            gap: 8px !important;
+            padding: 10px !important;
+            background: rgba(255,255,255,0.05) !important;
+            border-radius: 12px !important;
+            margin: 0 5px !important;
+        }
+        
+        /* 第三、第四个按钮放在第二行 */
+        .action-btn:nth-child(3) {
+            grid-row: 2;
+            grid-column: 1;
+        }
+        
+        .action-btn:nth-child(4) {
+            grid-row: 2;
+            grid-column: 2;
+        }
+        
+        /* 下一季度按钮独占第三行 */
+        .action-btn.primary {
+            grid-row: 3 !important;
+            grid-column: 1 / -1 !important;  /* 横跨两列 */
+            margin-top: 8px !important;
+        }
+
+        /* ========== 报告栏 ========== */
+        #report-panel {
+            background: rgba(255, 255, 255, 0.95) !important;  /* 不透明白色 */
+            border: 1px solid #ddd !important;                 /* 加边框 */
+            border-radius: 8px !important;
+            padding: 10px !important;
+            margin: 0 5px 12px 10px !important;
+            min-height: 200px !important;
+            max-height: 250px !important;                      /* 限制高度 */
+            overflow-y: auto !important;                       /* 垂直滚动 */
+            
+            /* 关键：flex 布局让内容向上堆叠 */
+            display: flex !important;
+            flex-direction: column !important;                 /* 正常方向 */
+        }
+        
+        #report-content {
+            font-size: 13px !important;
+            color: #333 !important;
+            line-height: 1.5 !important;
+            width: 100% !important;
+        }
+        
+        /* 每条报告样式 */
+        .report-item {
+            padding: 6px 8px;
+            margin: 4px 0;
+            background: #f8f9ff;
+            border-radius: 6px;
+            border-left: 3px solid #4a7bff;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 成绩弹窗 ===== */
+        #scores-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1200;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .scores-content {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 380px;
+            margin: 30px auto;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9ff;
+            border-radius: 6px;
+        }
+
+        .score-total {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            margin-top: 15px;
+            padding: 12px;
+            font-weight: bold;
+        }
+
+        /* ===== 操作按钮 ===== */
+        #actions {
+            display: flex;
+            gap: 10px;
+            position: sticky;
+            bottom: 10px;
+            padding-top: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .action-btn.primary {
+            background: #4a7bff;
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: #34c759;
+            color: white;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== 事件完成标记 ===== */
+        .event-completed {
+            opacity: 0.7;
+            background: #e8f5e9;
+            border-left-color: #34c759;
+        }
+
+        .completed-badge {
+            display: inline-block;
+            background: #34c759;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 8px;
+        }

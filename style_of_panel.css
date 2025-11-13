@@ -1,0 +1,178 @@
+/* ===== 学习/工作弹窗 ===== */
+#study-modal {
+  display: none;                /* 默认隐藏 */
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1100;                /* 高于 event-modal(1000)，低于 scores-modal(1200) */
+  padding: 20px;
+
+  /* 居中 */
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.study-content {
+  background: #fff;
+  width: 92%;
+  max-width: 380px;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+#study-modal h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #4a7bff;
+}
+
+/* 面板内按钮样式（可与全局 action 样式一致） */
+#study-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+#study-actions .panel-btn {
+  padding: 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f7ff;
+  cursor: pointer;
+  transition: transform .15s ease;
+}
+#study-actions .panel-btn:active { transform: scale(0.97); }
+
+/* 重要按钮 */
+#study-actions .panel-btn.primary { background: #4a7bff; color: #fff; }
+
+/* 关闭 X */
+#study-modal .close-modal {
+  position: absolute;
+  top: 10px; right: 14px;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+}
+
+
+
+
+/* ===== 社交/娱乐弹窗 ===== */
+#social-modal, #wechat-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1100;             /* 高于事件弹窗(1000)，低于成绩弹窗(1200) */
+  padding: 20px;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-content, .wechat-content {
+  background: #fff;
+  width: 92%;
+  max-width: 420px;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+#social-modal h2, #wechat-modal h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #4a7bff;
+}
+
+#social-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+#social-actions .panel-btn {
+  padding: 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f7ff;
+  cursor: pointer;
+  transition: transform .15s ease;
+}
+#social-actions .panel-btn.primary { background:#4a7bff; color:#fff; }
+#social-actions .panel-btn:active { transform: scale(0.97); }
+
+#wechat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+
+
+
+
+
+
+/* 联系人卡片（微信风） */
+.wechat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f8f9ff;
+  border: 1px solid #e6e9ff;
+}
+.wechat-avatar {
+  width: 50px; height: 50px; border-radius: 10px;
+  background: #dfe6ff; color: #4a7bff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold;
+  overflow: hidden;
+}
+.wechat-avatar img { width:100%; height:100%; object-fit: cover; display:block; }
+
+.wechat-info { flex: 1; }
+.wechat-name { font-weight: 600; }
+.wechat-meta { font-size: 12px; color: #666; margin-top: 2px; }
+
+/* 好感度条 */
+.favor-bar {
+  height: 6px; width: 100px; background: #eee; border-radius: 4px; overflow: hidden;
+  margin-top: 6px;
+}
+.favor-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #34c759, #7af57a);
+}
+
+/* 联系人操作按钮 */
+.wechat-actions {
+  display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+}
+.wechat-actions button {
+  padding: 6px 10px; font-size: 12px; border: none; border-radius: 8px; cursor: pointer;
+  background: #fff; border: 1px solid #e1e5ff;
+}
+.wechat-actions button:active { transform: scale(0.97); }
+
+/* 关闭 X */
+#social-modal .close-modal, #wechat-modal .close-modal {
+  position: absolute; top: 10px; right: 14px; font-size: 22px; color: #999; cursor: pointer;
+}
+/* 联系人行为按钮变灰 */
+.wechat-actions button[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
