@@ -9,14 +9,39 @@
 
         // ==== 事件前置-随机事件存储（返回本季度可抽的随机事件） ====
         function getAvailableRandomPool() {
-            const seasonKey = `${student.age}-${student.seasonIndex}`;
-            return gameData.events.random_events.filter(ev =>
-                // ① 回合限制
-                ev.availableSeasons.includes(seasonKey) &&
-                // ② 重复限制
-                (ev.repeatable || !student.completedEvents[ev.id])
-            );
+          const seasonKey = `${student.age}-${student.seasonIndex}`;
+
+          // 1) 合并三类事件为一个候选池
+          const all = [
+            ...(gameData.events.random_events || []),
+            ...(gameData.events.conditional_events || []),
+            ...(gameData.events.threshold_events || []),
+          ];
+
+          // 2) 统一过滤规则
+          const pool = all.filter(ev => {
+            // 季节限制（可选）
+            const okSeason = !ev.availableSeasons || ev.availableSeasons.includes(seasonKey);
+
+            // 条件过滤（可选）
+            const okCond = !ev.condition || ev.condition(student, gameData);
+
+            // 概率门（可选，默认 1）
+            const p = (typeof ev.prob === "number") ? Math.max(0, Math.min(1, ev.prob)) : 1;
+            const okProb = Math.random() < p;
+
+            // 完成/可重复
+            const okRepeat = ev.repeatable || !student.completedEvents[ev.id];
+
+            // 本季已出现去重
+            const okDedup = !student.thisSeasonAppeared.includes(ev.id);
+
+            return okSeason && okCond && okProb && okRepeat && okDedup;
+          });
+
+          return pool;
         }
+
 
         // ===== 事件前置-检查前置条件 =====
         function checkPrerequisites(prereq) {

@@ -33,6 +33,10 @@
             <span class="info-label">🍃 季节</span>
             <span class="info-value" id="season-display">春季</span>
         </div>
+        <div class="info-card school-card">
+            <span class="info-label">🏫 学校</span>
+            <span class="info-value" id="school-display">xx实验中学</span>
+        </div>
         <div class="info-card major-card">
             <span class="info-label">🎓 专业</span>
             <span class="info-value" id="major-display">理科</span>
@@ -47,7 +51,7 @@
     <div id="main-content">
         <!-- 左侧：能力参数 -->
         <div id="attributes-panel">
-            <h3>🎓 能力参数</h3>
+            <h3>🎓 属性</h3>
             <div id="attributes-list"></div>
         </div>
       <!-- 右侧：事件 -->
@@ -76,17 +80,17 @@
       <!-- 游戏开始 / 起名弹窗 -->
     <div id="start-modal">
         <div class="start-modal-content">
-            <h2>🎓 欢迎来到 《卷到博士：从高考到工位》</h2>
-            <p class="start-intro" style="font-size: 14px; text-indent: 2em"">
+            <h2>🎓 序章 高考篇</h2>
+            <p class="start-intro";style="font-size: 14px; text-indent: 2em; ">
                 <strong>🏫睁开双眼，你又回到了高三的教室里，周围的一切都真实的让你难以想象。</strong>
             </p>
-            <p class="start-intro" style="font-size: 14px; text-indent: 2em"">
+            <p class="start-intro";style="font-size: 14px; text-indent: 2em">
                 <strong>👨‍🔧这一次，你会走向什么样的人生呢，是会读研读博，走向学术科研颠峰？还是考公考编，寻找个稳定的工作？抑或是去赚更多的钱，过上富裕的生活？</strong>
             </p>
-            <p class="start-intro" style="font-size: 14px; text-indent: 2em"">
+            <p class="start-intro";style="font-size: 14px; text-indent: 2em">
                 <strong> 😶但也要小心，无论是读书还是工作，都不是那么轻松的。在这个年代，我们这代人，做什么都是千军万马过独木桥...</strong>
             </p>
-            <p class="start-intro" style="font-size: 13px; text-indent: 2em;font-style: italic;"">
+            <p class="start-intro";style="font-size: 13px; text-indent: 2em;font-style: italic;">
                 通过应对各种 <strong>学习</strong>、<strong>社交</strong>、
                 <strong>娱乐</strong> 与 <strong>随机</strong> 事件，逐步影响自己的能力参数，你的每一个选择都会影响你的人生。
             </p>
@@ -119,6 +123,34 @@
             </button>
         </div>
     </div>
+
+    <!-- 第一章 章节弹窗：进入大学篇 -->
+    <div id="chapter-modal">
+      <div class="chapter-content">
+        <span class="close-modal" onclick="closeChapterModal()">&times;</span>
+        <h2>🎓 第一章 我的大学</h2>
+        <p class="chapter-offer" id="chapter-offer" style="margin:8px 0 10px; font-size:18px; color:#333;">
+          已录取：<strong id="chapter-uni">—</strong>
+          <span id="chapter-major-wrap" style="display:none;"> · <span id="chapter-major"></span></span>
+        </p>
+
+        <p class="chapter-intro"style="font-size: 13px; text-indent: 2em;font-style: italic;">
+          高考已经结束，大学生活即将开始。
+          你将迎来全新的校园、同学与挑战：
+          研究学习、社团竞赛、实验室、导师、实习与求职……
+        </p>
+        <ul class="chapter-points">
+          <li>解锁大学/研究生/初职场相关事件</li>
+          <li>结识新 NPC（室友、辅导员、导师、学长/学姐…）</li>
+          <li>开启专业方向、科研路线与实习机会</li>
+        </ul>
+        <div class="chapter-actions">
+          <button class="chapter-btn primary" onclick="confirmEnterCollege()">立即开启大学篇</button>
+          <button class="chapter-btn" onclick="closeChapterModal()">稍后再看</button>
+        </div>
+      </div>
+    </div>
+
 
 
     <!-- 事件详情弹窗 -->
@@ -256,11 +288,11 @@
 
           {min:660,max:679,
             reach:  ["中国科学技术大学","南京大学","中国人民大学","北京航空航天大学"],
-            target: ["同济大学","浙江大学（部分专业）","中山大学","南开大学","武汉大学"],
+            target: ["同济大学","浙江大学（部分专业）","中山大学","南开大学","武汉大学","北京理工大学"],
             safety: ["华中科技大学","西安交通大学","哈尔滨工业大学","电子科技大学"]},
 
           {min:640,max:659,
-            reach:  ["同济大学","武汉大学","南开大学","中山大学"],
+            reach:  ["同济大学","浙江大学（部分专业）","中山大学","南开大学","武汉大学","北京理工大学"],
             target: ["华中科技大学","西安交通大学","哈尔滨工业大学","电子科技大学","北京理工大学"],
             safety: ["北京邮电大学","东南大学","天津大学","厦门大学"]},
 

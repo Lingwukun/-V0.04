@@ -78,6 +78,9 @@
                 document.getElementById("season-display").textContent = gameData.seasons[student.seasonIndex];
                 document.getElementById("major-display").textContent = student.major;  // 新增
                 document.getElementById("money-display").textContent = `${student.cash}元`;  // 新增
+                if(student.completedEvents.College_entrance_examination_score_checking){
+                    document.getElementById("school-display").textContent = `${student.university}`;
+                }
             
                 renderAttributes();
                 renderEvents(false);

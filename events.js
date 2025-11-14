@@ -646,6 +646,91 @@
                             }
                         ]
                     }
+                ],
+
+                "conditional_events": [
+                    {
+                        id: "lover_quarrel",
+                        title: "💔 小争执",
+                        desc: "备考压力下，你和恋人因为小事起了争执……",
+                        isImportant: false,
+                        repeatable: true,
+                        availableSeasons: ["18-0","18-1","18-2","18-3"],
+                        condition: (student) => !!student.love,   // ✅ 有恋爱关系才可能发生
+                        prob: 0.4,                                // 60% 机率进入本季随机候选
+                        options: [
+                          {
+                            text: "耐心沟通",
+                            action: () => {
+                              student.attributes.eq = Math.min(100, student.attributes.eq + 2);
+                              showReport("💬 你们冷静沟通，情商 +2。");
+                              closeEventModal();
+                            }
+                          },
+                          {
+                            text: "冷战几天",
+                            action: () => {
+                              student.attributes.happy = Math.max(0, student.attributes.happy - 5);
+                              showReport("🥶 情绪受挫，心情 -5。");
+                              closeEventModal();
+                            }
+                          }
+                        ]
+                      },
+
+                ],
+
+                "threshold_events":[
+                    {
+                        id: "sick_low_health",
+                        title: "🤒 身体不适",
+                        desc: "你感到乏力头晕，或许是连日劳累……",
+                        repeatable: true,
+                        condition: (student) => student.attributes.health < 40, // ✅ 阈值判断写在这
+                        prob: 0.7,  // 70% 概率进入本季随机候选
+                        options: [
+                          {
+                            text: "去校医室",
+                            action: () => {
+                              student.attributes.health = Math.min(100, student.attributes.health + 8);
+                              student.attributes.happy  = Math.max(0, student.attributes.happy  - 3);
+                              showReport("🏥 休息治疗：健康 +8，心情 -3。");
+                              closeEventModal();
+                            }
+                          },
+                          {
+                            text: "先扛一扛",
+                            action: () => {
+                              student.attributes.health = Math.max(0, student.attributes.health - 5);
+                              showReport("😵 继续硬扛：健康 -5。");
+                              closeEventModal();
+                            }
+                          }
+                        ]
+                      },
+                      // 例：心情满值时触发的正向事件（设置 prob:1 保证入池，仍按随机抽取数量决定是否被选中）
+                      {
+                        id: "happy_peak_burst",
+                        title: "🎉 灵感爆发",
+                        desc: "状态顶峰，效率惊人！但兴奋过去后会回落。",
+                        repeatable: false, // 只来一次
+                        condition: (student) => student.attributes.happy >= 100,
+                        prob: 1,
+                        options: [
+                          {
+                            text: "抓住窗口期",
+                            action: () => {
+                              student.attributes.memory = Math.min(100, student.attributes.memory + 5);
+                              student.attributes.logic  = Math.min(100, student.attributes.logic + 3);
+                              student.attributes.happy  = Math.max(0, student.attributes.happy  - 30);
+                              student.completedEvents.happy_peak_burst = true;
+                              showReport("🚀 记忆 +5，逻辑 +3；兴奋回落，心情 -30。");
+                              closeEventModal();
+                            }
+                          }
+                        ]
+                      }
+
                 ]
         }
 console.log("加载了事件库",gameEventsData )

@@ -95,6 +95,10 @@
             for(let subj in gameData.subjects) {
                 student.scores[subj] = 0;
             }
+
+            student.chapter = "highschool";     // 当前章节
+            student.collegeIntroShown = false;  // 是否已显示“大学篇”弹窗
+
             
             // renderAll();
             // renderEvents()
@@ -194,7 +198,10 @@
           }
           
           // 游戏截止到18岁秋天
-          if (student.seasonIndex==2&&student.age==18){
+          if (student.age === 18 && student.seasonIndex === 2 && !student.collegeIntroShown){
+            openChapterModal_1();
+          }
+          if (student.age === 19){
             endGame();
           }
         }
@@ -248,5 +255,66 @@
             //document.querySelectorAll('#actions button').forEach(btn => btn.disabled = true);
             initGame();
         }
+
+
+        function openChapterModal_1(){
+          fillChapterAdmission();              // ← 先填“大学/专业”
+          const m = document.getElementById('chapter-modal');
+          if (m) m.style.display = 'flex';
+        }
+        function closeChapterModal_1(){
+          const m = document.getElementById('chapter-modal');
+          if (m) m.style.display = 'none';
+        }
+        function confirmEnterCollege(){
+          student.chapter = "college";        // 切换到大学篇
+          student.collegeIntroShown = true;   // 标记已显示
+          showReport("<strong>🎓 你开启了大学篇：新的人生阶段开始了！</strong>");
+          closeChapterModal_1();
+
+          // 这里按需：加载/解锁大学相关事件池、认识新 NPC 等
+          // e.g. socialState.known['counsellor'] = true;
+          // 或切换事件库：gameData.events = { ...collegeEvents };
+        }
+
+
+        function fillChapterAdmission() {
+          // 兼容多种保存位置与空白
+          const uni =
+            (student.finalUniversity && String(student.finalUniversity).trim()) ||
+            (student.admission && student.admission.university && String(student.admission.university).trim()) ||
+            "";
+
+          const major =
+            (student.finalMajor && String(student.finalMajor).trim()) ||
+            (student.admission && student.admission.major && String(student.admission.major).trim()) ||
+            "";
+
+          const uniEl   = document.getElementById("chapter-uni");
+          const majorEl = document.getElementById("chapter-major");
+          const wrapEl  = document.getElementById("chapter-major-wrap");
+          const rowEl   = document.getElementById("chapter-offer");
+
+          if (!uniEl || !rowEl) return;
+
+          if (uni) {
+            uniEl.textContent = uni;
+            rowEl.style.display = "block";
+          } else {
+            // 没有录取信息时，你可以选择隐藏整行或给出提示
+            rowEl.style.display = "none"; // 或者：rowEl.textContent = "尚未确定录取结果";
+          }
+
+          if (wrapEl) {
+            if (major) {
+              majorEl.textContent = major;
+              wrapEl.style.display = "inline";
+            } else {
+              wrapEl.style.display = "none";
+            }
+          }
+        }
+
+
       
 console.log("加载了第四个函数文件，全局游戏js")
