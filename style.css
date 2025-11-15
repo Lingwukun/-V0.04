@@ -16,10 +16,22 @@
             min-width: 320px;  /* 最小宽度适配手机 */
             margin: 0 auto; /* 居中显示 */
         }
+        /* 用网格把页面分成五行：标题 / 顶部信息栏 / 主内容 / 报告 / 行动栏 */
+        body {
+          display: grid;
+          grid-template-rows: 
+            auto      /* h1 标题 */
+            64px      /* 顶部 info-bar 的高度 */
+            1fr       /* 主内容区，占剩余空间 */
+            140px     /* 报告栏固定高度（可按需调） */
+            auto;     /* 行动栏 */
+          gap: 8px;
+        }
 
         h1 {
-            font-size: 20px;  /* 手机端稍小 */
+            font-size: 18px;  /* 手机端稍小 */
             margin: 10px 0;
+            margin: 6px 0 0 0 !important;
         }
 
 
@@ -178,6 +190,14 @@
             /* scrollbar-width: none; */     /* Firefox 隐藏滚动条 */
             /* -ms-overflow-style: none; */  /* IE / 旧 Edge 隐藏滚动条 */
         }
+        /* 顶部信息栏高度固定为一行；内部横向滚动 */
+        #info-bar {
+          height: 64px !important;
+          margin: 0 10px !important;       /* 与下方保持左右对齐 */
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          flex-wrap: nowrap !important;
+        }
 
         .info-card {
           display: inline-flex;       /* 自适应内容宽度 */
@@ -220,10 +240,12 @@
         
         /* 不同卡片渐变色 */
         .name-card { border-left: 4px solid #ff6b6b; }
+        .gender-card { border-left: 4px solid #4efc6b; }
         .age-card { border-left: 4px solid #4ecdc4; }
         .season-card { border-left: 4px solid #ffe66d; }
+        .school-card { border-left: 4px solid #ffeecf; }
         .major-card { border-left: 4px solid #a8e6cf; }
-        .personality-card { border-left: 4px solid #c7ceea; }
+        .money-card { border-left: 4px solid #c7ceea; }
 
         /*#info-bar > div {
             flex: 1;
@@ -372,6 +394,10 @@
             gap: 5px;                 /* 间距 */
             align-items: baseline;    /* 文字基线对齐 */
         }
+
+
+
+
 
         /* ===== 事件面板 ===== */
 
@@ -559,15 +585,21 @@
             border-radius: 8px !important;
             padding: 10px !important;
             margin: 0 5px 12px 10px !important;
-            min-height: 300px !important;
-            max-height: 300px !important;                      /* 限制高度 */
+            /*min-height: 300px !important;
+            max-height: 300px !important; */                     /* 限制高度 */
             overflow-y: auto !important;                       /* 垂直滚动 */
             
             /* 关键：flex 布局让内容向上堆叠 */
             display: flex !important;
             flex-direction: column !important;                 /* 正常方向 */
         }
-        
+        /* 报告栏固定高度，内部滚动 */
+        #report-panel {
+          height: 140px !important;        /* 和 grid 第四行对应 */
+          max-height: 140px !important;
+          margin: 0 10px !important;
+          overflow: auto !important;
+        }
         #report-content {
             font-size: 13px !important;
             color: #333 !important;
@@ -685,3 +717,37 @@
             font-size: 11px;
             margin-left: 8px;
         }
+
+
+        /* 让整页正好一屏高，不让外层页面滚动 */
+        html, body {
+          height: 100vh;
+          overflow: hidden;                /* 禁止整页上下滚动 */
+        }
+
+        /* 主内容占据中间的弹性高度，内部两栏再各自滚动 */
+        #main-content {
+          margin: 0 10px !important;
+          height: 100% !important;         /* 占满本行 */
+          min-height: 0 !important;        /* 关键：允许子项收缩，否则 overflow 不生效 */
+        }
+
+        /* 左右两栏填满主内容行的高度，内部滚动 */
+        #attributes-panel, #events-panel {
+          height: 100% !important;
+          max-height: none !important;     /* 取消你之前的 max-height 限制 */
+          overflow: auto !important;       /* 在面板内部滚动 */
+          -webkit-overflow-scrolling: touch;
+        }
+
+ 
+
+        /* 行动栏紧凑一些，避免撑高 */
+        #actions-bar {
+          margin: 0 10px 10px !important;
+        }
+
+        /* 可选：卡片再紧凑点，减少头部占高 */
+        .info-card { height: 48px !important; padding: 4px 8px !important; }
+        .info-label { font-size: 11px !important; margin-bottom: 2px !important; }
+        .info-value { font-size: 13px !important; }

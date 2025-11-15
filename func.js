@@ -13,9 +13,18 @@
 
         // ===== 确认开始游戏（起名） =====
         function confirmStartGame() {
-            const input = document.getElementById("player-name-input");
-            let name = input ? input.value.trim() : "";
+              const input = document.getElementById("player-name-input");
+              const typed = (input?.value || "").trim();
 
+              // 有输入就用输入；没有输入就保留/设定默认名
+              if (typed) {
+                student.name = typed;
+              } else {
+                // 如果之前没名，就按性别给默认名（不会覆盖已有名）
+                if (!student.name) {
+                  student.name = (student.gender === 1) ? "王小明" : "王小美";
+                }
+              }
 
             // 关闭开始弹窗
             const modal = document.getElementById("start-modal");
@@ -28,7 +37,7 @@
             renderEvents(true);   // 第一次进入，允许抽随机事件
 
             // 在报告栏里添加一个欢迎提示
-            showReport(`👋 ${student.name} 的高三一年开始了！当前为 ${student.age} 岁 ${gameData.seasons[student.seasonIndex]}，你是 ${student.major} 生，性格为「${student.personality.name}」。`);
+            showReport(`👋 ${student.name} 的高三一年开始了！当前为 ${student.age} 岁 ${gameData.seasons[student.seasonIndex]}，你是 ${student.major} 生。`);
             const init_attribute = student.attributes.iq+student.attributes.eq+student.attributes.memory+student.attributes.logic+student.attributes.engineering;
             if(init_attribute<150){
               showReport('🟥你的成绩有点糟糕，在最后的这个学期，你一定要更加努力才行！')
@@ -45,14 +54,7 @@
         function initGame() {
             clearReports();
             gameData.events = gameEventsData;
-            if(Math.random()<0.5){student.gender=1}//有一半的概率是男生
-            if (!student.name) {
-                if(student.gender==1){
-                    student.name = "王小明";
-                }else{
-                    student.name = "王小美";
-                }   
-            }
+            student.gender = Math.random() < 0.5 ? 1 : 0;
             student.age = 18;
             student.seasonIndex = 0;
             student.attributes = {
@@ -90,7 +92,7 @@
             } else {
                 student.major = Math.random() > 0.8 ? "文科" : "理科";
             }
-            
+            student.Highschool_Arts_and_Sciences = student.major;
             // 初始化分数
             for(let subj in gameData.subjects) {
                 student.scores[subj] = 0;
@@ -102,7 +104,15 @@
             
             // renderAll();
             // renderEvents()
+            if (!student.name) {
+                if(student.gender==1){
+                    student.name = "王小明";
+                }else{
+                    student.name = "王小美";
+                }   
+            }
             showStartModal(); 
+
         }  
 
 

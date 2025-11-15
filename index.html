@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>卷到博士：从高考到工位</title>
+    <title>上了大学就好了：新时代学生模拟器</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="./style_of_panel.css">
     <script src="./render.js"></script>
@@ -13,7 +13,7 @@
     <script src="./events.js"></script>
 </head>
 <body>
-    <h1 style="text-align: center; color: white; margin: 15px 0; font-size: 22px;">📚 卷到博士：从高考到工位</h1>
+    <h1 style="text-align: center; color: white; margin: 15px 0; font-size: 22px;">📚 上了大学就好了：新时代学生模拟器</h1>
     
     <!-- 顶部信息栏 -->
     <div id="info-bar">
@@ -41,7 +41,7 @@
             <span class="info-label">🎓 专业</span>
             <span class="info-value" id="major-display">理科</span>
         </div>
-        <div class="info-card money">
+        <div class="info-card money-card">
             <span class="info-label">💵 经济</span>
             <span class="info-value" id="money-display">0元</span>
         </div>
@@ -191,6 +191,20 @@
       </div>
     </div>
 
+    <!-- 其他行动弹窗 -->
+    <div id="other-modal">
+      <div class="panel-content">
+        <span class="close-modal" onclick="closeOtherPanel()">&times;</span>
+        <h2>⚙️ 其他行动</h2>
+        <p class="panel-tip">选择你要进行的操作：</p>
+
+        <div class="panel-grid" id="other-actions-box">
+          <!-- JS 动态插入按钮 -->
+        </div>
+      </div>
+    </div>
+
+
     <!-- 微信联系人弹窗 -->
     <div id="wechat-modal">
       <div class="wechat-content">
@@ -198,6 +212,65 @@
         <h2>🟢 微信</h2>
         <div id="wechat-list"></div>
       </div>
+
+
+    <!-- 商店弹窗：校门口的超市 -->
+    <div id="shop-modal">
+      <div class="shop-content">
+        <span class="close-modal" onclick="closeShop()">&times;</span>
+        <h2>🛒 商店 · 校门口的超市</h2>
+
+        <!-- 顶部余额 -->
+        <div class="shop-balance">余额：<strong id="shop-cash">¥0</strong></div>
+
+        <!-- 分类标签 -->
+        <div class="shop-tabs" id="shop-tabs"></div>
+
+        <!-- 物品列表 -->
+        <div class="shop-grid" id="shop-list"></div>
+      </div>
+    </div>
+
+
+
+    <!-- 背包弹窗 -->
+    <div id="inventory-modal">
+      <div class="inv-content">
+        <span class="close-modal" onclick="closeInventory()">&times;</span>
+        <h2>🎒 我的背包</h2>
+        <div class="inv-summary">
+          物品种类：<strong id="inv-kinds">0</strong>，
+          总数量：<strong id="inv-total">0</strong>
+        </div>
+
+        <!-- 分类标签（可选） -->
+        <div class="inv-tabs" id="inv-tabs"></div>
+
+        <!-- 物品列表 -->
+        <div class="inv-grid" id="inv-list"></div>
+
+        <!-- 空背包提示 -->
+        <div class="inv-empty" id="inv-empty" style="display:none;">
+          背包空空如也，去<span class="inv-link" onclick="openShop()">商店</span>逛逛吧～
+        </div>
+      </div>
+    </div>
+
+    <!-- 选择礼物弹窗 -->
+    <div id="gift-modal" style="display:none;">
+      <div class="gift-content">
+        <span class="close-modal" onclick="closeGiftModal()">&times;</span>
+        <h2>🎁 选择要送的礼物</h2>
+        <div class="gift-tip" id="gift-tip">只显示背包中拥有的礼物</div>
+        <div class="gift-grid" id="gift-list"></div>
+        <div class="gift-empty" id="gift-empty" style="display:none;">
+          背包里没有礼物可送。去 <span class="gift-link" onclick="closeGiftModal(); openShop('gift');">商店</span> 逛逛吧～
+        </div>
+      </div>
+    </div>
+
+
+
 
 
     <script>
@@ -236,6 +309,7 @@
             seasonIndex: 0,
             personality: null,
             major: "", // "文科" or "理科"
+            Highschool_Arts_and_Sciences :"",
             Student_level : Math.round(Math.random()*3)+1,
             scores: {},
             completedEvents: {}, // 记录已完成事件
@@ -250,6 +324,7 @@
             university: null, //是否已经被大学录取
             work:null, //是否参加工作
             cash:200,
+            inventory:{}, //背包
             quarterActions : {
                 npc:  {
                   "father":{chat:false, gift:false, study:true, tease:true},
@@ -427,6 +502,46 @@
             "航空航天工程","能源与动力工程","船舶与海洋工程","农学"
           ]
         };
+
+        // 分类常量（显示顺序）
+        const SHOP_CATEGORIES = [
+          { key: "gift",   name: "礼物类" },
+          { key: "daily",  name: "日常类" },
+          { key: "study",  name: "学习类" },
+          { key: "med",    name: "药品类" },
+          { key: "event",  name: "事件物品" },
+        ];
+
+        // 如果已在商店里定义了 SHOP_CATEGORIES，可复用它
+        const INV_CATEGORIES = SHOP_CATEGORIES || [
+          { key:"gift",  name:"礼物类" },
+          { key:"daily", name:"日常类" },
+          { key:"study", name:"学习类" },
+          { key:"med",   name:"药品类" },
+          { key:"event", name:"事件物品" },
+        ];
+
+
+        // 商品库（id 必须唯一；stockLeft/stockTotal 库存；img 为相对路径）
+        const SHOP_DB = [
+          // 礼物类
+          { id:"gift_flower", cat:"gift", name:"向日葵花束", desc:"暖心小礼物，提升好感。", price: 50, stockLeft: 5,favor:3, stockTotal: 5, img:"" },
+          { id:"gift_choco",  cat:"gift", name:"手工巧克力", desc:"甜甜的巧克力，甜甜的人际关系。", price: 80, stockLeft: 3,favor:5, stockTotal: 3, img:"" },
+          // 日常类
+          { id:"daily_water", cat:"daily", name:"矿泉水", desc:"补充水分，健康略有恢复。", price: 3, stockLeft: 10, stockTotal: 10, img:"" },
+          { id:"daily_bread", cat:"daily", name:"面包", desc:"快速补充体力与心情。", price: 6, stockLeft: 8, stockTotal: 8, img:"" },
+          // 学习类
+          { id:"study_paper", cat:"study", name:"A4 纸", desc:"打印材料、整理笔记必备。", price: 5, stockLeft: 6, stockTotal: 6, img:"" },
+          { id:"study_pen",   cat:"study", name:"签字笔", desc:"书写更顺滑，学习效率略增。", price: 8, stockLeft: 5, stockTotal: 5, img:"" },
+          // 药品类
+          { id:"med_vit",     cat:"med", name:"复合维生素", desc:"缓解疲劳，健康+5。", price: 22, stockLeft: 4, stockTotal: 4, img:"" },
+          { id:"med_cough",   cat:"med", name:"止咳糖浆", desc:"喉咙不适时的救星。", price: 18, stockLeft: 2, stockTotal: 2, img:"" },
+          // 事件物品类（示例：触发事件/解锁剧情）
+          { id:"event_ticket",cat:"event", name:"校园演出门票", desc:"可触发一次【看剧】特别事件。", price: 40, stockLeft: 2, stockTotal: 2, img:"" },
+          { id:"event_giftbox",cat:"event", name:"神秘礼盒", desc:"随机惊喜或小插曲。", price: 66, stockLeft: 1, stockTotal: 1, img:"" },
+        ];
+
+
 
 
 
