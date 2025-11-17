@@ -43,7 +43,7 @@
               showReport('🟥你的成绩有点糟糕，在最后的这个学期，你一定要更加努力才行！')
             } else if(init_attribute<300){
               showReport('🟧你的成绩在班级是中游，可能努努力还是能冲刺本科的，加油啊！')
-            } else if(init_attribute<450){
+            } else if(init_attribute<400){
               showReport('🟨你的成绩还算不错，最后一个学期，可不能懈怠了！')
             } else{
               showReport('🟩你是班里数一数二的学霸，为了考上清华北大，这三年你从未懈怠。')
@@ -55,20 +55,22 @@
             clearReports();
             gameData.events = gameEventsData;
             student.gender = Math.random() < 0.5 ? 1 : 0;
+            // 记录多步骤事件的子任务完成情况
+            if (!student.eventProgress) student.eventProgress = {}; 
             student.age = 18;
             student.seasonIndex = 0;
             student.attributes = {
-                iq: Math.min(100,Math.round((2*student.Student_level-1)*10+Math.random()*30)),
-                eq: Math.min(100,Math.round((2*student.Student_level-1)*10+Math.random()*30)),
-                memory: Math.min(100,Math.round((2*student.Student_level-1)*10+Math.random()*30)),
-                logic: Math.min(100,Math.round((2*student.Student_level-1)*10+Math.random()*30)),
-                engineering: Math.min(100,Math.round((2*student.Student_level-1)*10+Math.random()*30)),
+                iq: Math.min(100,Math.round(student.Student_level*10+Math.random()*30)),
+                eq: Math.min(100,Math.round(student.Student_level*10+Math.random()*30)),
+                memory: Math.min(100,Math.round(student.Student_level*10+Math.random()*30)),
+                logic: Math.min(100,Math.round(student.Student_level*10+Math.random()*30)),
+                engineering: Math.min(100,Math.round(student.Student_level*10+Math.random()*30)),
                 happy:80,
                 sport:10+Math.round(Math.random()*90),
                 charm:20*Math.round(Math.random()*5),
-                health:100,
+                health:60+Math.round(Math.random()*40),
                 luck: 50, // 隐藏参数
-                languages: Math.min(100,Math.round((2*student.Student_level-1)*10+Math.random()*30)) // 隐藏参数
+                languages: Math.min(100,Math.round(student.Student_level*10+Math.random()*30)) // 隐藏参数
             
             
             };
@@ -172,8 +174,7 @@
                     Math.round(student.attributes[attr] + growth));
             });
             
-            renderAll();  
-            renderEvents()
+
             // 季节提示
             const seasonTips = [
                 "春天到了,春风轻拂,鸟语花香。新的事件发生了！",
@@ -194,11 +195,17 @@
                   "friend_girl":{chat:false, gift:false, study:false, tease:false},
                   "love_friend_boy_1":{chat:false, gift:false, study:false, tease:false},
                   "love_friend_girl_1":{chat:false, gift:false, study:false, tease:false},
-                  "roommate_a":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_1_a":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_1_b":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_1_c":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_2_a":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_2_b":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_2_c":{chat:false, gift:false, study:false, tease:false},
                   "senior_lab":{chat:false, gift:false, study:false, tease:false},
                   "counsellor":{chat:false, gift:false, study:false, tease:false},
                   "club_leader":{chat:false, gift:false, study:false, tease:false},
                   "class_beauty":{chat:false, gift:false, study:false, tease:false},
+                  "class_handsome":{chat:false, gift:false, study:false, tease:false},
                   "pro_teacher":{chat:false, gift:false, study:false, tease:false},}, 
                   game:false, park:false, show:false, dating:false };
 
@@ -206,14 +213,57 @@
             showReport("💵 获得零花钱200元");
             student.cash+=200;
           }
+          if(student.seasonIndex===2&&student.age===18){
+            student.family_eco = Math.random();
+            if(student.family_eco <0.3){
+                alert("🪙 介于家里的经济条件，父母综合考虑之后决定每个月给你1000元，也就是<strong>每季度3000元</strong>，如果有不够的地方，可能需要你自己努力了。");
+                showReport("🪙 介于家里的经济条件，父母综合考虑之后决定每个月给你1000元，也就是<strong>每季度3000元</strong>，如果有不够的地方，可能需要你自己努力了。")
+                student.cash+=3000;
+                showReport("💵 获得生活费3000元");
+            }else if(student.family_eco <0.8){
+                alert("💴 父母认为每个月给你2000元生活费是足够的，也就是<strong>每季度6000元</strong>。这个水平的生活费，应该可以满足你的大部分生活需求了。");
+                showReport("💴 父母认为每个月给你2000元生活费是足够的，也就是<strong>每季度6000元</strong>。这个水平的生活费，应该可以满足你的大部分生活需求了。");
+                student.cash+=6000;
+                showReport("💵 获得生活费6000元");
+            }else {
+                alert("💴 你家的财产还是比较富裕的，父母大手一挥，决定每个月给你3500元生活费，也就是<strong>每季度10500元</strong>。同学们听说之后纷纷投来羡慕的眼神。");
+                showReport("💴 你家的财产还是比较富裕的，父母大手一挥，决定每个月给你3500元生活费，也就是<strong>每季度10500元</strong>。同学们听说之后纷纷投来羡慕的眼神。");
+                student.cash+=10500;
+                showReport("💵 获得生活费10500元");
+            }
+            const first_month_cost = 500+Math.round(Math.random()*1000);
+            const second_month_cost = 400+Math.round(Math.random()*1200);
+            const third_month_cost = 600+Math.round(Math.random()*800);
+            student.cash = student.cash -first_month_cost-second_month_cost-third_month_cost;
+            showReport(`💵 本季度三个月的消费各为 ${first_month_cost}元，${second_month_cost}元，${third_month_cost}元，现在<strong>剩余财产${student.cash}元。`);
+          }
+          if((student.seasonIndex>2&&student.age===18)||(student.age>18)){
+            if(student.family_eco <0.3){
+                student.cash+=3000;
+                showReport("💵 获得生活费3000元");
+            }else if(student.family_eco <0.8){
+                student.cash+=6000;
+                showReport("💵 获得生活费6000元");
+            }else {
+                student.cash+=10500;
+                showReport("💵 获得生活费10500元");
+            }
+            const first_month_cost = 500+Math.round(Math.random()*1000);
+            const second_month_cost = 500+Math.round(Math.random()*1000);
+            const third_month_cost = 600+Math.round(Math.random()*800);
+            student.cash = student.cash -first_month_cost-second_month_cost-third_month_cost;
+            showReport(`💵 本季度三个月的消费各为 ${first_month_cost}元，${second_month_cost}元，${third_month_cost}元，现在<strong>剩余财产${student.cash}元。`);
+          }
           
-          // 游戏截止到18岁秋天
+          // 游戏截止到18岁冬天
           if (student.age === 18 && student.seasonIndex === 2 && !student.collegeIntroShown){
             openChapterModal_1();
           }
-          if (student.age === 19){
+          if (student.age === 18 && student.seasonIndex === 3){
             endGame();
           }
+            renderAll();  
+            renderEvents()
         }
 
         // ===== 考试评分算法 =====

@@ -62,6 +62,12 @@
                       (Array.isArray(event.prerequisite) ? event.prerequisite.join(", ") : event.prerequisite));
                 return;
             }
+
+              // ← 多步骤事件专用渲染
+              if (event.multiStep) { 
+                renderMultiStepEventModal(event);
+                return;
+              }
                         
             currentOpenEvent = event;
             const modal = document.getElementById("event-modal");
@@ -86,6 +92,10 @@
 
         // ===== 执行事件-执行点击并标记完成 ====
         function executeEventOption(index) {
+            // 多步骤事件不走这个函数，由 executeMultiStepOption 处理
+              if (currentOpenEvent && currentOpenEvent.multiStep) {
+                return;  // 防止被默认逻辑提前写入 thisSeasonCompleted / completedEvents
+              }
             if (currentOpenEvent && currentOpenEvent.options[index]) {
                 // 标记为本季度已完成（阻止本季度再次显示）
                 if (!student.thisSeasonCompleted.includes(currentOpenEvent.id)) {
@@ -229,6 +239,79 @@
           }
           return sampleN(pool, n);
         }
+
+        function renderMultiStepEventModal(event){
+          const modal = document.getElementById("event-modal");
+          const title = document.getElementById("event-modal-title");
+          const body  = document.getElementById("event-modal-body");
+          modal.style.display = "block";
+          title.textContent = event.title;
+
+          // 当前进度
+          const prog = student.eventProgress[event.id] || {};
+          let html = `<div class="event-story">${event.desc}</div><div class="event-options">`;
+
+          event.options.forEach(opt => {
+            const done = !!prog[opt.key];
+            html += `<button class="option-btn" ${done?'disabled':''}
+                       onclick="executeMultiStepOption('${event.id}','${opt.key}')">
+                       ${opt.text} ${done? '✓ 已完成':''}
+                     </button>`;
+          });
+          html += `</div>`;
+
+          body.innerHTML = html;
+        }
+
+        // 执行子任务
+        function executeMultiStepOption(eventId, key){
+          const allEvents = gameData.events;
+          // 找到事件对象（可能在固定池 / 根据 key 渲染的当前事件列表）
+          let event = null;
+
+          // 你已有的 currentOpenEvent 也可用，这里保险查找：
+          // 假设当前季 events 列表里就有它
+          const currentKey = `${student.age}-${student.seasonIndex}`;
+          const fixed = Array.isArray(allEvents[currentKey]) ? allEvents[currentKey] : (allEvents[currentKey] ? [allEvents[currentKey]] : []);
+          const rand  = student.seasonRandomEvents || [];
+          const pool = [...fixed, ...rand];
+          event = pool.find(e => e && e.id === eventId) || currentOpenEvent;
+
+          if (!event) return;
+
+          const opt = (event.options || []).find(o => o.key === key);
+          if (!opt) return;
+
+          // 执行具体逻辑（不关闭弹窗）
+          if (typeof opt.action === 'function') opt.action();
+
+          // 标记该子任务完成
+          if (!student.eventProgress[eventId]) student.eventProgress[eventId] = {};
+          student.eventProgress[eventId][key] = true;
+
+          // 检查是否全部完成
+          const prog = student.eventProgress[eventId];
+          const allDone = event.subtasks.every(k => prog[k]);
+
+          if (allDone) {
+            // 全部完成再标记事件完成（允许进入下一季度）
+            student.completedEvents[eventId] = true;
+
+            // 如果你的系统里还会把本季度事件写到 thisSeasonCompleted，可在这儿补上：
+            if (!student.thisSeasonCompleted.includes(eventId)) {
+              student.thisSeasonCompleted.push(eventId);
+            }
+
+            showReport(`✅ ${event.title} 全部流程完成。`);
+            closeEventModal();
+            renderEvents(false);  // 刷新事件列表显示“已完成”
+            student.completedEvents[event.id] = true;
+          } else {
+            // 还没全部完成，刷新按钮状态，继续让玩家点剩下的
+            renderMultiStepEventModal(event);
+          }
+        }
+
 
 
 console.log("加载了第二个函数文件，事件相关文件js")

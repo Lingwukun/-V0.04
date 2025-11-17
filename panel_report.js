@@ -899,77 +899,125 @@
           if (m) m.style.display = 'none';
         }
 
-        function renderInventoryTabs(activeKey){
-          const tabsEl = document.getElementById('inv-tabs');
-          if (!tabsEl) return;
-
-          // “全部”标签 + 其余分类
-          const tabs = [{key:"all", name:"全部"}, ...INV_CATEGORIES];
-          tabsEl.innerHTML = tabs.map(t => 
-            `<button class="inv-tab ${t.key===activeKey?'active':''}" onclick="renderInventoryList('${t.key}')">${t.name}</button>`
-          ).join('');
+        function renderInventoryTabs(selected = 'all'){
+          const tabs = document.getElementById('inv-tabs');
+          if (!tabs) return;
+          tabs.innerHTML = INV_CATEGORIES.map(c => `
+            <button class="inv-tab ${c.key===selected?'active':''}"
+              onclick="renderInventoryList('${c.key}'); this.parentNode.querySelectorAll('.inv-tab').forEach(b=>b.classList.remove('active')); this.classList.add('active');">
+              ${c.name}
+            </button>
+          `).join('');
+          // 记住当前选中的分类（给刷新时使用）
+          const modal = document.getElementById('inventory-modal');
+          if (modal) modal.dataset.cat = selected;
         }
 
-        function renderInventoryList(catKey){
-          const listEl = document.getElementById('inv-list');
+        function renderInventoryList(selected = (document.getElementById('inventory-modal')?.dataset.cat || 'all')){
+          const listEl  = document.getElementById('inv-list');
           const emptyEl = document.getElementById('inv-empty');
           const kindsEl = document.getElementById('inv-kinds');
           const totalEl = document.getElementById('inv-total');
           if (!listEl) return;
 
           const inv = student.inventory || {};
-          const entries = Object.entries(inv).filter(([,count]) => count > 0);
-
-          // 汇总
-          const totalCount = entries.reduce((s, [,c]) => s + c, 0);
-          const kindsCount = entries.length;
-          if (kindsEl) kindsEl.textContent = kindsCount;
-          if (totalEl) totalEl.textContent = totalCount;
-
-          if (entries.length === 0){
-            listEl.innerHTML = "";
-            if (emptyEl) emptyEl.style.display = "block";
-            return;
-          } else {
-            if (emptyEl) emptyEl.style.display = "none";
-          }
-
-          const cards = entries
-            .map(([id,count]) => {
-              const base = getShopItemById(id);
-              if (!base) return null;  // 未知物品（可选择隐藏）
-              // 分类过滤
-              if (catKey !== "all" && base.cat !== catKey) return null;
-
-              const img = base.img ? `<img src="${base.img}" alt="${base.name}" onerror="this.style.display='none'">`
-                                   : '<span style="font-size:12px;color:#999">No Image</span>';
-
-              return `
-                <div class="inv-card">
-                  <div class="inv-thumb">${img}</div>
-                  <div class="inv-name">${base.name}</div>
-                  <div class="inv-desc">${base.desc || ""}</div>
-                  <div class="inv-meta">
-                    <div class="inv-cat">${(INV_CATEGORIES.find(c=>c.key===base.cat)?.name) || "其他"}</div>
-                    <div class="inv-count">数量：${count}</div>
-                  </div>
-                </div>
-              `;
+          const entries = Object.entries(inv)
+            .filter(([, count]) => count > 0)
+            .map(([id, count]) => {
+              const def = ITEM_DB.find(x => x.id === id);    // ← 用 ITEM_DB
+              return { id, count, def };
             })
-            .filter(Boolean);
-
-          listEl.innerHTML = cards.length ? cards.join('') : '<div class="inv-empty">该分类暂无物品</div>';
-
-          // 同步 Tabs 高亮
-          const tabsEl = document.getElementById('inv-tabs');
-          if (tabsEl){
-            const labels = [{key:"all",name:"全部"}, ...INV_CATEGORIES];
-            Array.from(tabsEl.children).forEach((btn, i) => {
-              const isActive = labels[i].key === catKey;
-              btn.classList.toggle('active', isActive);
+            .filter(rec => {
+              if (!rec.def) return false;                    // 未知物品就隐藏
+              if (selected === 'all') return true;
+              return rec.def.cat === selected;               // 按分类过滤
             });
+
+          if (!entries.length){
+            listEl.innerHTML = '';
+            if (emptyEl) emptyEl.style.display = 'block';
+            if (kindsEl) kindsEl.textContent = '0';
+            if (totalEl) totalEl.textContent = '0';
+            return;
           }
+
+          if (emptyEl) emptyEl.style.display = 'none';
+
+          let total = 0;
+          listEl.innerHTML = entries.map(({def, count}) => {
+            total += count;
+            return `
+              <div class="inv-card">
+                <div class="inv-thumb">
+                  ${def.img ? `<img src="${def.img}" alt="${def.name}" onerror="this.style.display='none'">`
+                            : `<span class="noimg">No Image</span>`}
+                </div>
+                <div class="inv-name">${def.name}</div>
+                <div class="inv-desc">${def.desc || ''}</div>
+                <div class="inv-meta">数量：${count}</div>
+              </div>
+            `;
+          }).join('');
+
+          if (kindsEl) kindsEl.textContent = String(entries.length);
+          if (totalEl) totalEl.textContent = String(total);
         }
+
+
+          function ensureInventory() {
+            if (!student.inventory) student.inventory = {};
+          }
+
+          // 按 id 获取物品定义
+          function getItemDef(itemId) {
+            return (ITEM_DB || []).find(x => x.id === itemId) || null;
+          }
+
+          // 授予物品（事件调用用这个）
+          function addItemToInventory(itemId, qty = 1, { silent = false, source = "event" } = {}){
+            if (!student.inventory) student.inventory = {};
+            const def = ITEM_DB.find(x=>x.id===itemId);
+            if (!def) return false;
+            student.inventory[itemId] = (student.inventory[itemId] || 0) + qty;
+            if (!silent) showReport(`🎒 获得道具：${def.name} ×${qty}${source?`（${source}）`:''}`);
+
+            // 背包开着时刷新当前分类
+            const modal = document.getElementById('inventory-modal');
+            if (modal && modal.style.display === 'flex') {
+              const cat = modal.dataset.cat || 'all';
+              renderInventoryList(cat);
+            }
+            return true;
+          }
+
+
+          // 消耗物品（可选：做检查/任务消耗等）
+          function removeItemFromInventory(itemId, qty = 1, { silent = false } = {}) {
+            ensureInventory();
+            if (!student.inventory[itemId] || student.inventory[itemId] < qty) return false;
+            student.inventory[itemId] -= qty;
+            if (student.inventory[itemId] <= 0) delete student.inventory[itemId];
+            if (!silent) {
+              const def = getItemDef(itemId);
+              showReport(`🗝 使用/消耗：${def ? def.name : itemId} ×${qty}`);
+            }
+            if (document.getElementById('inventory-modal')?.style.display === 'flex' &&
+                typeof renderInventoryList === 'function') {
+              renderInventoryList('all');
+            }
+            return true;
+          }
+
+          // 判断是否拥有
+          function hasItem(itemId, qty = 1) {
+            ensureInventory();
+            return (student.inventory[itemId] || 0) >= qty;
+          }
+
+          // 商店用：只展示可购买的
+          function getPurchasableItems() {
+            return (ITEM_DB || []).filter(it => it.purchasable === true);
+          }
 
 
 

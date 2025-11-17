@@ -310,10 +310,12 @@
             personality: null,
             major: "", // "文科" or "理科"
             Highschool_Arts_and_Sciences :"",
-            Student_level : Math.round(Math.random()*3)+1,
+            Student_level : Math.ceil(Math.random()*7),
             scores: {},
             completedEvents: {}, // 记录已完成事件
             lastExamScores: null, // 记录上次考试成绩
+            roommate : null, // 是否有室友
+            family_eco : null, //家庭经济水平
             seasonRandomEvents: [],   // 本季度已抽出的随机事件（缓存）
             thisSeasonAppeared: [],   // 本季度已出现的随机事件 id（仅用于去重）
             thisSeasonCompleted: [],   // 本季度已完成的事件 id（仅当前季度有效）
@@ -335,11 +337,17 @@
                   "friend_girl":{chat:false, gift:false, study:false, tease:false},
                   "love_friend_boy_1":{chat:false, gift:false, study:false, tease:false},
                   "love_friend_girl_1":{chat:false, gift:false, study:false, tease:false},
-                  "roommate_a":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_1_a":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_1_b":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_1_c":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_2_a":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_2_b":{chat:false, gift:false, study:false, tease:false},
+                  "roommate_2_c":{chat:false, gift:false, study:false, tease:false},
                   "senior_lab":{chat:false, gift:false, study:false, tease:false},
                   "counsellor":{chat:false, gift:false, study:false, tease:false},
                   "club_leader":{chat:false, gift:false, study:false, tease:false},
                   "class_beauty":{chat:false, gift:false, study:false, tease:false},
+                  "class_handsome":{chat:false, gift:false, study:false, tease:false},
                   "pro_teacher":{chat:false, gift:false, study:false, tease:false},},   // 已与 NPC 互动过？
                 game: false,   // 已打游戏？
                 park: false,   // 已去公园？
@@ -351,22 +359,26 @@
 
         // ===== 高考志愿数据库（分段 < 50 分）=====
         const GAOKAO_DB = [
-          {min:700,max:750,
+          {min:700,max:749,
+            reach:  ["清华大学","北京大学"],
+            target: ["清华大学","北京大学"],
+            safety: ["复旦大学","上海交通大学","浙江大学"]},
+          {min:680,max:699,
             reach:  ["清华大学","北京大学"],
             target: ["复旦大学","上海交通大学","浙江大学"],
             safety: ["中国科学技术大学","南京大学","中国人民大学"]},
 
-          {min:680,max:699,
+          {min:660,max:679,
             reach:  ["复旦大学","上海交通大学","浙江大学"],
             target: ["中国科学技术大学","南京大学","中国人民大学","北京航空航天大学","同济大学"],
             safety: ["北京理工大学","华中科技大学","哈尔滨工业大学"]},
 
-          {min:660,max:679,
+          {min:650,max:659,
             reach:  ["中国科学技术大学","南京大学","中国人民大学","北京航空航天大学"],
             target: ["同济大学","浙江大学（部分专业）","中山大学","南开大学","武汉大学","北京理工大学"],
             safety: ["华中科技大学","西安交通大学","哈尔滨工业大学","电子科技大学"]},
 
-          {min:640,max:659,
+          {min:640,max:649,
             reach:  ["同济大学","浙江大学（部分专业）","中山大学","南开大学","武汉大学","北京理工大学"],
             target: ["华中科技大学","西安交通大学","哈尔滨工业大学","电子科技大学","北京理工大学"],
             safety: ["北京邮电大学","东南大学","天津大学","厦门大学"]},
@@ -465,21 +477,6 @@
             reach:  ["高职专科（热门）"],
             target: ["高职专科（普通）"],
             safety: ["高职专科（对口中高职衔接）"]},
-
-          {min:240,max:259,
-            reach:  ["高职专科（普通）"],
-            target: ["高职专科（衔接本科渠道）"],
-            safety: ["—"]},
-
-          {min:220,max:239,
-            reach:  ["高职专科（部分专业）"],
-            target: ["—"],
-            safety: ["—"]},
-
-          {min:200,max:219,
-            reach:  ["—"],
-            target: ["—"],
-            safety: ["—"]}
         ];
 
         // ===== 专业库（文/理分流）=====
@@ -508,37 +505,43 @@
           { key: "gift",   name: "礼物类" },
           { key: "daily",  name: "日常类" },
           { key: "study",  name: "学习类" },
-          { key: "med",    name: "药品类" },
+          //{ key: "med",    name: "药品类" },
           { key: "event",  name: "事件物品" },
         ];
 
-        // 如果已在商店里定义了 SHOP_CATEGORIES，可复用它
-        const INV_CATEGORIES = SHOP_CATEGORIES || [
+        const INV_CATEGORIES = [
+          { key:"all",  name:"全部" },
           { key:"gift",  name:"礼物类" },
           { key:"daily", name:"日常类" },
           { key:"study", name:"学习类" },
-          { key:"med",   name:"药品类" },
           { key:"event", name:"事件物品" },
+          { key:"special", name:"特殊物品" }, 
         ];
 
 
         // 商品库（id 必须唯一；stockLeft/stockTotal 库存；img 为相对路径）
         const SHOP_DB = [
           // 礼物类
-          { id:"gift_flower", cat:"gift", name:"向日葵花束", desc:"暖心小礼物，提升好感。", price: 50, stockLeft: 5,favor:3, stockTotal: 5, img:"" },
-          { id:"gift_choco",  cat:"gift", name:"手工巧克力", desc:"甜甜的巧克力，甜甜的人际关系。", price: 80, stockLeft: 3,favor:5, stockTotal: 3, img:"" },
+          { id:"gift_flower", cat:"gift", purchasable: true, name:"向日葵花束", desc:"向阳而生，送你明朗活力～", price: 50, stockLeft: 20,favor:2, stockTotal: 20, img:"./pic/shops/sunflower.png" },
+          { id:"gift_choco",  cat:"gift", purchasable: true, name:"手工巧克力", desc:"手作甜意，藏着专属心意～", price: 80, stockLeft: 20,favor:5, stockTotal: 20, img:"./pic/shops/chocolate.png" },
+          { id:"gift_choco",  cat:"gift", purchasable: true, name:"保温杯礼盒", desc:"恒温陪伴，日常贴心守护～", price: 280, stockLeft: 20,favor:9, stockTotal: 20, img:"./pic/shops/thermos_cup.png" },
+          { id:"gift_choco",  cat:"gift", purchasable: true, name:"苹果无线耳机", desc:"轻巧音质，承包校园时光～", price: 800, stockLeft: 20,favor:20, stockTotal: 20, img:"./pic/shops/airpods.png" },
           // 日常类
-          { id:"daily_water", cat:"daily", name:"矿泉水", desc:"补充水分，健康略有恢复。", price: 3, stockLeft: 10, stockTotal: 10, img:"" },
-          { id:"daily_bread", cat:"daily", name:"面包", desc:"快速补充体力与心情。", price: 6, stockLeft: 8, stockTotal: 8, img:"" },
+          { id:"daily_water", cat:"daily", purchasable: true, name:"矿泉水", desc:"补充水分，健康略有恢复。", price: 3, stockLeft: 10, stockTotal: 10, img:"" },
+          { id:"med_vit",     cat:"daily", purchasable: true, name:"复合维生素", desc:"缓解疲劳，健康+5。", price: 22, stockLeft: 4, stockTotal: 4, img:"" },
+          { id:"med_cough",   cat:"daily", purchasable: true, name:"止咳糖浆", desc:"喉咙不适时的救星。", price: 18, stockLeft: 2, stockTotal: 2, img:"" },
           // 学习类
-          { id:"study_paper", cat:"study", name:"A4 纸", desc:"打印材料、整理笔记必备。", price: 5, stockLeft: 6, stockTotal: 6, img:"" },
-          { id:"study_pen",   cat:"study", name:"签字笔", desc:"书写更顺滑，学习效率略增。", price: 8, stockLeft: 5, stockTotal: 5, img:"" },
-          // 药品类
-          { id:"med_vit",     cat:"med", name:"复合维生素", desc:"缓解疲劳，健康+5。", price: 22, stockLeft: 4, stockTotal: 4, img:"" },
-          { id:"med_cough",   cat:"med", name:"止咳糖浆", desc:"喉咙不适时的救星。", price: 18, stockLeft: 2, stockTotal: 2, img:"" },
+          { id:"study_paper", cat:"study", purchasable: true, name:"A4 纸", desc:"打印材料、整理笔记必备。", price: 5, stockLeft: 6, stockTotal: 6, img:"" },
+          { id:"study_pen",   cat:"study", purchasable: true, name:"签字笔", desc:"书写更顺滑，学习效率略增。", price: 8, stockLeft: 5, stockTotal: 5, img:"" },
           // 事件物品类（示例：触发事件/解锁剧情）
-          { id:"event_ticket",cat:"event", name:"校园演出门票", desc:"可触发一次【看剧】特别事件。", price: 40, stockLeft: 2, stockTotal: 2, img:"" },
-          { id:"event_giftbox",cat:"event", name:"神秘礼盒", desc:"随机惊喜或小插曲。", price: 66, stockLeft: 1, stockTotal: 1, img:"" },
+          { id:"event_ticket",cat:"event", purchasable: true, name:"校园演出门票", desc:"可触发一次【看剧】特别事件。", price: 40, stockLeft: 2, stockTotal: 2, img:"" },
+          { id:"event_giftbox",cat:"event", purchasable: true, name:"神秘礼盒", desc:"随机惊喜或小插曲。", price: 66, stockLeft: 1, stockTotal: 1, img:"" },
+        ];
+
+        const ITEM_DB = [
+          // —— 事件专属 / 关键道具（不在商店出售）——
+          { id: "campus_card", name: "校园卡", cat: "special", price: null, purchasable: false, img: "./pic/shops/school_card.png", desc: "用于图书馆/食堂/门禁的校园身份卡" },
+          { id: "dorm_key", name: "宿舍钥匙", cat: "special", price: null, purchasable: false, img: "./pic/shops/dormitory_key.png", desc: "宿舍钥匙，妥善保管" },
         ];
 
 
@@ -555,19 +558,25 @@
         /* ========== NPC 数据库（示例） ========== */
                 const NPC_DB = [
                   // alwaysKnown = 初始认识；condition 可用于“认识条件”（属性、事件等）
-                  { id:"father",  name:"爸爸", role:"爸爸", age:25+student.age, alwaysKnown:true,  favor:100, avatarUrl:"./pic/father.png" },
-                  { id:"mother",  name:"妈妈", role:"妈妈", age:24+student.age, alwaysKnown:true,  favor:100, avatarUrl:"./pic/mother.png" },
-                  { id:"teacher_gaosan",  name:"李老师", role:"高中班主任", age:22+student.age, alwaysKnown:true,  favor:60, avatarUrl:"./pic/teacher_gaosan.png" },
-                  { id:"deskmate",        name:"周云峰",   role:"同桌",     age:student.age, alwaysKnown:true,  favor:55, avatarUrl:"./pic/deskmate.png" },
-                  { id:"friend_boy",      name:"赵小磊",   role:"好朋友",     age:student.age, alwaysKnown:false,  favor:75, condition:()=> student.gender==1, avatarUrl:"./pic/friend_boy.png" },
-                  { id:"friend_girl",      name:"吴晓雯",   role:"好朋友",     age:student.age, alwaysKnown:false,  favor:75, condition:()=> student.gender==0, avatarUrl:"./pic/friend_girl.png" },
-                  { id:"love_friend_boy_1",name:"张曼",   role:"初恋",     age:student.age, alwaysKnown:false,  favor:80, condition:()=> (student.love==1) && (student.gender==1), avatarUrl:"./pic/love_friend_boy_1.png" },
-                  { id:"love_friend_girl_1",name:"魏鹏",   role:"初恋",     age:student.age, alwaysKnown:false,  favor:80, condition:()=> (student.love==1) && (student.gender==0), avatarUrl:"./pic/love_friend_girl_1.png" },
-                  { id:"roommate_a",      name:"黄强",   role:"室友A",      age:student.age, alwaysKnown:false, favor:40, condition:()=> (student.age>=19)&&(student.gender==1), avatarUrl:"" },
-                  { id:"senior_lab",      name:"林耀学长",   role:"实验室师兄", age:2+student.age, alwaysKnown:false, favor:30, condition:()=> student.finalUniversity!=null, avatarUrl:"" },
+                  { id:"father",  name:"爸爸", role:"爸爸", age:25+student.age, alwaysKnown:true,  favor:100, avatarUrl:"./pic/npc/father.png" },
+                  { id:"mother",  name:"妈妈", role:"妈妈", age:24+student.age, alwaysKnown:true,  favor:100, avatarUrl:"./pic/npc/mother.png" },
+                  { id:"deskmate",        name:"周云峰",   role:"高中同桌",     age:student.age, alwaysKnown:true,  favor:55, avatarUrl:"./pic/npc/deskmate.png" },
+                  { id:"friend_boy",      name:"赵小磊",   role:"高中好朋友",     age:student.age, alwaysKnown:false,  favor:75, condition:()=> student.gender==1, avatarUrl:"./pic/npc/friend_boy.png" },
+                  { id:"friend_girl",      name:"吴晓雯",   role:"高中好朋友",     age:student.age, alwaysKnown:false,  favor:75, condition:()=> student.gender==0, avatarUrl:"./pic/npc/friend_girl.png" },
+                  { id:"love_friend_boy_1",name:"张曼",   role:"初恋",     age:student.age, alwaysKnown:false,  favor:80, condition:()=> (student.love==1) && (student.gender==1), avatarUrl:"./pic/npc/love_friend_boy_1.png" },
+                  { id:"love_friend_girl_1",name:"魏鹏",   role:"初恋",     age:student.age, alwaysKnown:false,  favor:80, condition:()=> (student.love==1) && (student.gender==0), avatarUrl:"./pic/npc/love_friend_girl_1.png" },
+                  { id:"roommate_1_a",      name:"黄强",   role:"本科室友A",      age:student.age, alwaysKnown:false, favor:40, condition:()=> (student.roommate)&&(student.gender==1), avatarUrl:"./pic/npc/roommate_1_a.png" },
+                  { id:"roommate_1_b",      name:"刘允新",   role:"本科室友B",      age:student.age, alwaysKnown:false, favor:60, condition:()=> (student.roommate)&&(student.gender==1), avatarUrl:"./pic/npc/roommate_1_b.png" },
+                  { id:"roommate_1_c",      name:"杨宇",   role:"本科室友C",      age:student.age, alwaysKnown:false, favor:20, condition:()=> (student.roommate)&&(student.gender==1), avatarUrl:"./pic/npc/roommate_1_c.png" },
+                  { id:"roommate_2_a",      name:"黄帆帆",   role:"本科室友A",      age:student.age, alwaysKnown:false, favor:40, condition:()=> (student.roommate)&&(student.gender==0), avatarUrl:"./pic/npc/roommate_2_a.png" },
+                  { id:"roommate_2_b",      name:"王一宁",   role:"本科室友B",      age:student.age, alwaysKnown:false, favor:60, condition:()=> (student.roommate)&&(student.gender==0), avatarUrl:"./pic/npc/roommate_2_b.png" },
+                  { id:"roommate_2_c",      name:"宋敏",   role:"本科室友C",      age:student.age, alwaysKnown:false, favor:20, condition:()=> (student.roommate)&&(student.gender==0), avatarUrl:"" },
+                  { id:"senior_lab",      name:"林耀学长",   role:"实验室师兄", age:2+student.age, alwaysKnown:false, favor:30, condition:()=> student.finalUniversity!=null, avatarUrl:"./pic/npc/roommate_2_c.png" },
                   { id:"counsellor",      name:"陈隆辅导员", role:"辅导员",     age:8+student.age, alwaysKnown:false, favor:35, condition:()=> student.age>=19, avatarUrl:"" },
                   { id:"club_leader",     name:"李振",   role:"社团部长",   age:1+student.age, alwaysKnown:false, favor:30, condition:()=> (student.age>=19)&&(student.attributes.charm>=50), avatarUrl:"" },
-                  { id:"class_beauty",    name:"严晓予",   role:"文艺委员,班花",   age:student.age, alwaysKnown:false, favor:45, condition:()=> (student.attributes.charm>=60)&&(student.gender==1), avatarUrl:"./pic/class_beauty.png" },
+                  { id:"class_beauty",    name:"严晓予",   role:"高中文艺委员,班花",   age:student.age, alwaysKnown:false, favor:45, condition:()=> (student.attributes.charm>=60)&&(student.gender==1), avatarUrl:"./pic/npc/class_beauty.png" },
+                  { id:"class_handsome",    name:"高晨嵩",   role:"高中体育委员,班草",   age:student.age, alwaysKnown:false, favor:45, condition:()=> (student.attributes.charm>=60)&&(student.gender==0), avatarUrl:"./pic/npc/class_handsome.png" },
+                  { id:"teacher_gaosan",  name:"李老师", role:"高中班主任", age:22+student.age, alwaysKnown:true,  favor:60, avatarUrl:"./pic/npc/teacher_gaosan.png" },
                   { id:"pro_teacher",     name:"王教授", role:"导师",       age:30+student.age, alwaysKnown:false, favor:20, condition:()=> student.age>=22 && student.finalUniversity, avatarUrl:"" },
                 ];
 
